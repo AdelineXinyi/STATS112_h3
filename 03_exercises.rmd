@@ -90,7 +90,7 @@ garden_harvest %>%
               values_from = sumpd,
               values_fill = 0.0)
 
-#right?
+#num->char?
 ```
 
   2. Summarize the `garden_harvest` data to find the total harvest in pound for each vegetable variety and then try adding the plot from the `garden_planting` table. This will not turn out perfectly. What is the problem? How might you fix it?
@@ -100,15 +100,9 @@ garden_harvest %>%
   group_by(vegetable,variety) %>% 
   summarise(sumpd=sum(weight*0.0022046)) %>% 
    left_join(garden_planting,
- by = garden_planting$plot)
-
-garden_harvest %>% 
-  group_by(vegetable,variety) %>% 
-  summarise(sumpd=sum(weight*0.0022046)) %>% 
-  merge(x=garden_harvest,y=garden_planting$plot,by=c("vegetable","variety"),all.x=TRUE)
-
-#how to merge
+ by = c("vegetable","variety"))
 ```
+**The problem is that the number of plot is not aligned with the number of vegetable varieties, so many value appear to be NA.The way to fix might be assign value like"no ploting" to replace NA to make it look more neat.**
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `garden_spending` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
