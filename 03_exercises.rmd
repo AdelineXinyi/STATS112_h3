@@ -107,10 +107,7 @@ garden_harvest %>%
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `garden_spending` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
 
-**
-
-
-
+**Can first use left_join() to join by available columns(vegetable variety), and for those with price with tax, use summarise to do a sum() to add prices together.**
 
 
   4. Subset the data to tomatoes. Reorder the tomato varieties from smallest to largest first harvest date. Create a barplot of total harvest in pounds for each variety, in the new order.CHALLENGE: add the date near the end of the bar. (This is probably not a super useful graph because it's difficult to read. This is more an exercise in using some of the functions you just learned.)
@@ -132,16 +129,25 @@ garden_harvest %>%
 ```{r}
 garden_harvest %>% 
   mutate(variety_lower=str_to_lower(variety),variety_length=str_length(variety)) %>% 
-  arrange(vegetable,variety_length)
+  group_by(vegetable,variety_length) %>% 
+  distinct(variety) %>% 
+  arrange(variety_length)
 
-#distict? a row for each variety?
+#distinct? a row for each variety?
 ```
 
   6. In the `garden_harvest` data, find all distinct vegetable varieties that have "er" or "ar" in their name. HINT: `str_detect()` with an "or" statement (use the | for "or") and `distinct()`.
 
 ```{r}
-garden_harvest %>% 
-  select(str_detect(variety,c("er"|"ar")))
+garden_harvest%>% 
+   filter(str_detect(variety, c("er","ar"))) %>% 
+   group_by(vegetable,variety) %>% 
+   distinct(variety)
+ 
+#must | ?
+#garden_harvest %>% 
+  #group_by(vegetable,variety) %>% 
+  #distinct(variety) 
 ```
 
 
@@ -280,13 +286,35 @@ Trips %>%
   15. Use the latitude and longitude variables in `Stations` to make a visualization of the total number of departures from each station in the `Trips` data. Use either color or size to show the variation in number of departures. We will improve this plot next week when we learn about maps!
   
 ```{r}
+Trips %>% 
+  mutate(name=sstation) %>% 
+  left_join(Stations,
+  by ="name") %>% 
+  group_by(name) %>% 
+  summarise(n=n()) %>% 
+  ggplot(aes(x=lat,y=long))+
+  geom_area()
 
+#how to use
+#n
 ```
   
-  16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
+16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
   
 ```{r}
+yes<-Trips %>% 
+  mutate(name=sstation) %>% 
+  left_join(Stations,
+  by ="name") %>% 
+  group_by(name) %>% 
+ mutate(n=n()) 
 
+
+yes%>% 
+  ggplot(aes(y=long,x=lat,group=name))+
+  geom_polygon()
+
+#?
 ```
   
 **DID YOU REMEMBER TO GO BACK AND CHANGE THIS SET OF EXERCISES TO THE LARGER DATASET? IF NOT, DO THAT NOW.**
@@ -299,12 +327,15 @@ In this section, we'll use the data from 2022-02-01 Tidy Tuesday. If you didn't 
 
 ```{r}
 breed_traits_total<-breed_traits %>% 
-  mutate(total_rating=sum())
+  summarise(Breed,total_rating=sum())
+  
+#how to ? select?
 ```
 
   18. The final product of this exercise will be a graph with the top-20 dogs in total ratings (from previous problem) on the y-axis, year on the x-axis, and points colored by each breed's ranking for that year (from the `breed_rank_all` dataset). The points within each breed will be connected by a line, and the breeds should be arranged from the highest median rank to lowest median rank ("highest" is actually the smallest numer, eg. 1 = best). After you're finished, think of AT LEAST one thing you could you do to make this graph better. HINTS: 1. Start with the `breed_rank_all` dataset and pivot it so year is a variable. 2. Use the `separate()` function to get year alone, and there's an extra argument in that function that can make it numeric. 3. For both datasets used, you'll need to `str_squish()` Breed before joining. 
   
 ```{r}
+
 
 ```
   
