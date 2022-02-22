@@ -99,8 +99,9 @@ garden_harvest %>%
 garden_harvest %>% 
   group_by(vegetable,variety) %>% 
   summarise(sumpd=sum(weight*0.0022046)) %>% 
-   left_join(garden_planting,
- by = c("vegetable","variety"))
+  left_join(garden_planting,
+  by = c("vegetable","variety"))
+#?
 ```
 **The problem is that the number of plot is not aligned with the number of vegetable varieties, so many value appear to be NA.The way to fix might be assign value like"no ploting" to replace NA to make it look more neat.**
 
@@ -119,9 +120,9 @@ garden_harvest %>%
   summarise(mindate=min(date),sumpd=sum(weight*0.0022046)) %>% 
   arrange(mindate) %>% 
   ggplot(aes(x=sumpd,y=reorder(variety,desc(mindate))))+
-  geom_bar(stat = "identity")+
-  geom_text(aes(label=mindate), vjust=1.6, size=3.5)+
-  labs(title="total harvest in pounds for each tomato variety from smallest to largest first harvest date",x="total harvest(pounds)",y="variety")
+  geom_bar(stat = "identity",fill="steelblue")+
+  geom_text(aes(label=mindate), vjust=0.5,hjust=0.5, size=2,color="blue")+
+  labs(title="total harvest in pounds for each tomato variety \nfrom smallest to largest first harvest date",x="total harvest(pounds)",y="variety")
 ```
 
   5. In the `garden_harvest` data, create two new variables: one that makes the varieties lowercase and another that finds the length of the variety name. Arrange the data by vegetable and length of variety name (smallest to largest), with one row for each vegetable variety. HINT: use `str_to_lower()`, `str_length()`, and `distinct()`.
@@ -139,12 +140,9 @@ garden_harvest %>%
   6. In the `garden_harvest` data, find all distinct vegetable varieties that have "er" or "ar" in their name. HINT: `str_detect()` with an "or" statement (use the | for "or") and `distinct()`.
 
 ```{r}
-
 garden_harvest%>% 
    filter(str_detect(variety, "er|ar")) %>% 
    distinct(vegetable,variety)
-
-
 ```
 
 
@@ -195,10 +193,11 @@ Trips %>%
   
 ```{r}
 Trips %>% 
-  mutate(time=hour(sdate),min=minute(sdate)*(1/60)) %>% 
+  mutate(hour=hour(sdate),min=minute(sdate)*(1/60),time=hour+min) %>% 
   ggplot(aes(x=time))+
   geom_density()+
   labs(title = " bikes rented at different time of the day",x="time of the day")
+#
 ```
   
   9. A bar graph of the events versus day of the week. Put day on the y-axis.
@@ -336,7 +335,7 @@ breed_traits_total %>%
   
 ```{r}
 rank<-breed_rank_all %>% 
-  str_squish(Breed) %>% 
+  mutate(Breed=str_squish(Breed)) %>% 
   select(-c("links","Image")) %>% 
   pivot_longer(cols=starts_with("2"),
                names_to="year",
@@ -344,28 +343,45 @@ rank<-breed_rank_all %>%
   separate(year,c("year")) %>% 
   mutate(breed=Breed) %>% 
   select(-c(Breed))
-rank
 
 breed_traits_total %>% 
-  str_squish(Breed) %>% 
+   mutate(Breed=str_squish(Breed))  %>% 
   slice_max(n=20,order_by=total_rating) %>% 
   inner_join(rank,by=c("Breed"="breed")) %>% 
-  ggplot(aes(y=Breed,x=year))+
-  geom_point(aes(color=Rank))
+  ggplot(aes(y=reorder(Breed,desc(Rank),median),x=year))+
+  geom_point(aes(color=Rank))+
+  labs(title = "rank of the top-20 dog breeds in total ratings",y="Breed")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 
-
-#why only 392
+#median?connect by a line?
 ```
   
   19. Create your own! Requirements: use a `join` or `pivot` function (or both, if you'd like), a `str_XXX()` function, and a `fct_XXX()` function to create a graph using any of the dog datasets. One suggestion is to try to improve the graph you created for the Tidy Tuesday assignment. If you want an extra challenge, find a way to use the dog images in the `breed_rank_all` file - check out the `ggimage` library and [this resource](https://wilkelab.org/ggtext/) for putting images as labels.
   
 ```{r}
+breed_traits_own<-breed_traits %>% 
+  select(-c("Coat Type","Coat Length")) %>% 
+  mutate(total_rating=rowSums(select_if(.,is.numeric)),Breed=str_squish(Breed))%>% 
+  inner_join(rank,by=c("Breed"="breed"))
 
+breed_traits_own %>% 
+  filter(Rank<=10) %>% 
+  ggplot(aes(y=Rank,x=year))+
+  geom_point()+
+  theme(panel.grid.major = element_blank())+
+  facet_wrap(vars(Breed),ncol=4)+
+  labs(title='Rank Change of top 10 Dog Breeds',y='Rank',x='year')+
+  ylim(0,50)+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 18, vjust = 1))+
+  theme()
 ```
   
 ## GitHub link
 
   20. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 03_exercises.Rmd, provide a link to the 03_exercises.md file, which is the one that will be most readable on GitHub.
+  
 
 ## Challenge problem! 
 
