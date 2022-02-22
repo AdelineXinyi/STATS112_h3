@@ -21,6 +21,10 @@ library(gardenR)       # for Lisa's garden data
 library(lubridate)     # for date manipulation
 library(ggthemes)      # for even more plotting themes
 library(geofacet)      # for special faceting with US map layout
+library(ggplot2)
+library(cowplot)
+library(magick)
+library(knitr)
 theme_set(theme_minimal())       # My favorite ggplot() theme :)
 ```
 
@@ -365,23 +369,26 @@ breed_traits_own<-breed_traits %>%
   mutate(total_rating=rowSums(select_if(.,is.numeric)),Breed=str_squish(Breed))%>% 
   inner_join(rank,by=c("Breed"="breed"))
 
+imag<-"dog.png"
+
 breed_traits_own %>% 
-  filter(Rank<=10) %>% 
+  filter(str_detect(Breed,"Retrievers")) %>% 
   ggplot(aes(y=Rank,x=year))+
-  geom_point()+
+  geom_image(image = imag, size = .07)+
+  facet_wrap(vars(Breed),ncol=3)+
   theme(panel.grid.major = element_blank())+
-  facet_wrap(vars(Breed),ncol=4)+
-  labs(title='Rank Change of top 10 Dog Breeds',y='Rank',x='year')+
-  ylim(0,50)+
+  labs(title='Rank Change of Retreiver Breeds',y='Rank',x='year')+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
-    size = 18, vjust = 1))+
+    size = 18, vjust = 1),axis.text.x=element_text(angle=45))+
   theme()
+
 ```
   
 ## GitHub link
 
   20. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 03_exercises.Rmd, provide a link to the 03_exercises.md file, which is the one that will be most readable on GitHub.
   
+https://github.com/AdelineXinyi/STATS112_h3/blob/3b51ed3255c4c5470bdb9143f82064b162c7dc28/03_exercises.rmd
 
 ## Challenge problem! 
 
