@@ -22,9 +22,9 @@ library(lubridate)     # for date manipulation
 library(ggthemes)      # for even more plotting themes
 library(geofacet)      # for special faceting with US map layout
 library(ggplot2)
-library(cowplot)
-library(magick)
+library(ggimage)
 library(knitr)
+library(grid)
 theme_set(theme_minimal())       # My favorite ggplot() theme :)
 ```
 
@@ -86,7 +86,7 @@ These exercises will reiterate what you learned in the "Expanding the data wrang
 
 ```{r}
 garden_harvest %>% 
-  mutate(date=wday(date)) %>% 
+  mutate(date=wday(date,label=TRUE)) %>% 
   group_by(vegetable,date) %>% 
   summarise(sumpd=sum(weight*0.0022046)) %>% 
   pivot_wider(names_from =date,
@@ -94,7 +94,6 @@ garden_harvest %>%
               values_from = sumpd,
               values_fill = 0.0)
 
-#num->char?
 ```
 
   2. Summarize the `garden_harvest` data to find the total harvest in pound for each vegetable variety and then try adding the plot from the `garden_planting` table. This will not turn out perfectly. What is the problem? How might you fix it?
@@ -105,9 +104,8 @@ garden_harvest %>%
   summarise(sumpd=sum(weight*0.0022046)) %>% 
   left_join(garden_planting,
   by = c("vegetable","variety"))
-#?
 ```
-**The problem is that the number of plot is not aligned with the number of vegetable varieties, so many value appear to be NA.The way to fix might be assign value like"no ploting" to replace NA to make it look more neat.**
+**The problem is that the number of plot is not aligned with the number of vegetable varieties, so many value appear to be NA.The way to fix might be assign value like"no ploting" to replace NA to make it look more neat, or just filter out every vegetable variety with NA value.**
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `garden_spending` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
@@ -126,7 +124,9 @@ garden_harvest %>%
   ggplot(aes(x=sumpd,y=reorder(variety,desc(mindate))))+
   geom_bar(stat = "identity",fill="steelblue")+
   geom_text(aes(label=mindate), vjust=0.5,hjust=0.5, size=2,color="blue")+
-  labs(title="total harvest in pounds for each tomato variety \nfrom smallest to largest first harvest date",x="total harvest(pounds)",y="variety")
+  labs(title="total harvest in pounds for each tomato variety \nfrom smallest to largest first harvest date",x="total harvest(pounds)",y="tomatoes variety")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 
   5. In the `garden_harvest` data, create two new variables: one that makes the varieties lowercase and another that finds the length of the variety name. Arrange the data by vegetable and length of variety name (smallest to largest), with one row for each vegetable variety. HINT: use `str_to_lower()`, `str_length()`, and `distinct()`.
@@ -137,8 +137,6 @@ garden_harvest %>%
   group_by(vegetable,variety_length) %>% 
   distinct(variety) %>% 
   arrange(variety_length)
-
-#distinct? a row for each variety?
 ```
 
   6. In the `garden_harvest` data, find all distinct vegetable varieties that have "er" or "ar" in their name. HINT: `str_detect()` with an "or" statement (use the | for "or") and `distinct()`.
@@ -190,7 +188,8 @@ Trips %>%
   ggplot(aes(x=sdate))+
   geom_density()+
   scale_y_continuous(labels=scales::comma)+
-  labs(title = " bikes rented at different months",x="date")
+  labs(title = " bikes rented at different months",x="date")+
+  theme(plot.title=element_text(hjust=0.5,vjust=0.3,face="bold",color="black"))
 ```
   
   8. A density plot of the events versus time of day.  You can use `mutate()` with `lubridate`'s  `hour()` and `minute()` functions to extract the hour of the day and minute within the hour from `sdate`. Hint: A minute is 1/60 of an hour, so create a variable where 3:30 is 3.5 and 3:45 is 3.75.
@@ -200,8 +199,9 @@ Trips %>%
   mutate(hour=hour(sdate),min=minute(sdate)*(1/60),time=hour+min) %>% 
   ggplot(aes(x=time))+
   geom_density()+
-  labs(title = " bikes rented at different time of the day",x="time of the day")
-#
+  labs(title = " bikes rented at different time of the day",x="time of the day")+
+  theme(plot.title = element_text(hjust=0.5,vjust=0.3,face="bold",color="black"))
+
 ```
   
   9. A bar graph of the events versus day of the week. Put day on the y-axis.
@@ -212,7 +212,9 @@ Trips %>%
   ggplot(aes(y=day))+
   geom_bar()+
   #scale_y_continuous(labels=scales::comma)+
-  labs(title = " bikes rented at different weekdays",y="weekday",x="number of bikes rented")
+  labs(title = " bikes rented at different weekdays",y="weekday",x="number of bikes rented")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
   
   10. Facet your graph from exercise 8. by day of the week. Is there a pattern?
@@ -222,8 +224,10 @@ Trips %>%
   mutate(time=hour(sdate),min=minute(sdate)*(1/60),day=weekdays(sdate)) %>% 
   ggplot(aes(x=time))+
   geom_density()+
-  labs(title = " bikes rented at different time of the day",x="time of the day")+
-  facet_wrap(vars(day),ncol=2)
+  labs(title = " bikes rented at different time of the day on each weekdays",x="time of the day")+
+  facet_wrap(vars(day),ncol=2)+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 **There are two patterns respectively for weekdays and weekends. For week days, bikes are generally rented around 7am to 8am and 16pm to 18pm.On weekends,bikes are generally rented from 10 am to 17pm.**
 
@@ -238,7 +242,9 @@ Trips %>%
   ggplot(aes(x=time,fill=client))+
   geom_density(alpha = .5,color=NA)+
   labs(title = " bikes rented  at different time of the day",x="time of the day")+
-  facet_wrap(vars(day),ncol=2)
+  facet_wrap(vars(day),ncol=2)+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 
   12. Change the previous graph by adding the argument `position = position_stack()` to `geom_density()`. In your opinion, is this better or worse in terms of telling a story? What are the advantages/disadvantages of each?
@@ -249,7 +255,9 @@ Trips %>%
   ggplot(aes(x=time,fill=client))+
   geom_density(alpha = .5,color=NA,position = position_stack())+
   labs(title = " bikes rented at different time of the day",x="time of the day")+
-  facet_wrap(vars(day),ncol=2)
+  facet_wrap(vars(day),ncol=2)+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 
 **In my opinion, this graph can tell a better story then the previous one.In the previous one, two client kinds are basically tell two different stories with not too much similarities.This one takes two client kinds and makes their own trend respectively, and allows the audience to view the common points more.I don't really understand the previous one....**
@@ -263,7 +271,9 @@ Trips %>%
   ggplot(aes(x=time,fill=client))+
   geom_density(alpha = .5,color=NA)+
   labs(title = " bikes rented at different time of the day",x="time of the day")+
-  facet_wrap(vars(weekend))
+  facet_wrap(vars(weekend))+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
   
   14. Change the graph from the previous problem to facet on `client` and fill with `weekday`. What information does this graph tell you that the previous didn't? Is one graph better than the other?
@@ -274,10 +284,10 @@ Trips %>%
   mutate(time=hour(sdate),min=minute(sdate)*(1/60),day=weekdays(sdate)) %>% 
   ggplot(aes(x=time,fill=weekend))+
   geom_density(alpha = .5,color=NA)+
-  labs(title = " bikes rented at different time of the day",x="time of the day")+
-  facet_wrap(vars(client))
-
-#weekday？
+  labs(title = " bikes rented at different time of the day",x="time of the day",fill="week day kind")+
+  facet_wrap(vars(client))+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 **This graph shows the frequency of both client status renting bikes on weekends and weekdays. Registered client have a more stable time pattern as the pattern observed before both on weekends and weekdays, while casual client, although also have a similar pattern on weekends and weekdays, is totally different from the general pattern observed before......**
 
@@ -294,8 +304,10 @@ Trips %>%
   mutate(n=n()) %>% 
   ggplot(aes(x=long,y=lat))+
   geom_point(aes(color = n)) +
-  scale_color_viridis_c()
-
+  scale_color_viridis_c()+
+  labs(title = "Total departure from each stations",x="longitude",y="latitude")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
   
 16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
@@ -308,13 +320,15 @@ Trips %>%
   group_by(sstation,client) %>% 
   mutate(nCasual= sum(client == "Casual")) %>% 
   mutate(portionCasual=nCasual/nTotal) %>% 
- # mutate(ifCasual=portionCasual>1-portionCasual) %>% 
   ggplot(aes(x=long,y=lat))+
   geom_point(aes(color = portionCasual)) +
-  scale_color_viridis_c()
- 
-#?
+  scale_color_viridis_c()+
+  labs(title = "Total departure from each stations",x="longitude",y="latitude")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
+**Departures are rather concentrated within latitude range of 38.8-39.0 and the longitude range of -77.1 to -77.0. Among those depatures, very few of the bikes are rented by casual riders.**
+ 
   
 **DID YOU REMEMBER TO GO BACK AND CHANGE THIS SET OF EXERCISES TO THE LARGER DATASET? IF NOT, DO THAT NOW.**
 
@@ -332,7 +346,10 @@ breed_traits_total<-breed_traits %>%
 breed_traits_total %>% 
   filter(total_rating>0)  %>% 
   ggplot(aes(y=reorder(Breed,total_rating),x=total_rating))+
-  geom_point()
+  geom_point()+
+  labs(title = "Dogs total rating",x="Total rating",y="Breed")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
 ```
 
   18. The final product of this exercise will be a graph with the top-20 dogs in total ratings (from previous problem) on the y-axis, year on the x-axis, and points colored by each breed's ranking for that year (from the `breed_rank_all` dataset). The points within each breed will be connected by a line, and the breeds should be arranged from the highest median rank to lowest median rank ("highest" is actually the smallest numer, eg. 1 = best). After you're finished, think of AT LEAST one thing you could you do to make this graph better. HINTS: 1. Start with the `breed_rank_all` dataset and pivot it so year is a variable. 2. Use the `separate()` function to get year alone, and there's an extra argument in that function that can make it numeric. 3. For both datasets used, you'll need to `str_squish()` Breed before joining. 
@@ -360,7 +377,8 @@ breed_traits_total %>%
 
 #median?connect by a line?
 ```
-  
+**I thinks it will be better if facet is used.**
+
   19. Create your own! Requirements: use a `join` or `pivot` function (or both, if you'd like), a `str_XXX()` function, and a `fct_XXX()` function to create a graph using any of the dog datasets. One suggestion is to try to improve the graph you created for the Tidy Tuesday assignment. If you want an extra challenge, find a way to use the dog images in the `breed_rank_all` file - check out the `ggimage` library and [this resource](https://wilkelab.org/ggtext/) for putting images as labels.
   
 ```{r}
@@ -380,8 +398,11 @@ breed_traits_own %>%
   labs(title='Rank Change of Retreiver Breeds',y='Rank',x='year')+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 18, vjust = 1),axis.text.x=element_text(angle=45))+
-  theme()
-
+  theme()+
+  labs(title = "Retrievers ranking change",x="year",y="rank")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1))
+#how to make a line
 ```
   
 ## GitHub link
@@ -397,5 +418,28 @@ This problem uses the data from the Tidy Tuesday competition this week, `kids`. 
   21. In this exercise, you are going to try to replicate the graph below, created by Georgios Karamanis. I'm sure you can find the exact code on GitHub somewhere, but **DON'T DO THAT!** You will only be graded for putting an effort into this problem. So, give it a try and see how far you can get without doing too much googling. HINT: use `facet_geo()`. The graphic won't load below since it came from a location on my computer. So, you'll have to reference the original html on the moodle page to see it.
   
 ![](kids_data_karamanis.jpeg)
+```{r,fig.height=10, fig.width=4}
+ystart<-kids %>% 
+  filter(year==1997,variable=="lib") %>% 
+  select(state,inf_adj_perchild)
+yed<-kids %>% 
+  filter(year==2016,variable=="lib") %>% 
+  select(state,inf_adj_perchild)
+yed
+ystart
+ggplot() +
+geom_segment(aes(y=ystart$inf_adj_perchild,x=1997,xend=2016,yend=yed$inf_adj_perchild),arrow=arrow())+
+facet_geo(vars(ystart$state))
+
+
+kids %>% 
+  filter(variable=="lib",year%in%c(1997,2016)) %>% 
+  ggplot(aes(y=inf_adj_perchild,x=year)) +
+  geom_line(method="lm",arrow=arrow()) +
+  facet_geo(vars(state))
+
+
+  
+```
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
