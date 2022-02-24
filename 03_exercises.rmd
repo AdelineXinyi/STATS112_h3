@@ -369,13 +369,16 @@ breed_traits_total %>%
    mutate(Breed=str_squish(Breed))  %>% 
   slice_max(n=20,order_by=total_rating) %>% 
   inner_join(rank,by=c("Breed"="breed")) %>% 
-  ggplot(aes(y=reorder(Breed,desc(Rank),median),x=year))+
+  mutate(year_int=parse_integer(year)) %>% 
+  ggplot(aes(y=fct_reorder(Breed,desc(Rank),median),
+             x=year_int))+
+  geom_line()+
   geom_point(aes(color=Rank))+
   labs(title = "rank of the top-20 dog breeds in total ratings",y="Breed")+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
 
-#median?connect by a line?
+#default is median
 ```
 **I thinks it will be better if facet is used.**
 
@@ -391,8 +394,10 @@ imag<-"dog.png"
 
 breed_traits_own %>% 
   filter(str_detect(Breed,"Retrievers")) %>% 
-  ggplot(aes(y=Rank,x=year))+
+  mutate(year_int=parse_integer(year)) %>% 
+  ggplot(aes(y=Rank,x=year_int))+
   geom_image(image = imag, size = .07)+
+   geom_line()+
   facet_wrap(vars(Breed),ncol=3)+
   theme(panel.grid.major = element_blank())+
   labs(title='Rank Change of Retreiver Breeds',y='Rank',x='year')+
@@ -402,14 +407,15 @@ breed_traits_own %>%
   labs(title = "Retrievers ranking change",x="year",y="rank")+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
-#how to make a line
+
+#year is character so not able to draw the line
 ```
   
 ## GitHub link
 
   20. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 03_exercises.Rmd, provide a link to the 03_exercises.md file, which is the one that will be most readable on GitHub.
 
-https://github.com/AdelineXinyi/STATS112_h3/blob/main/03_exercises.rmd
+[here](https://github.com/AdelineXinyi/STATS112_h3/blob/main/03_exercises.rmd)
 
 ## Challenge problem! 
 
@@ -418,28 +424,59 @@ This problem uses the data from the Tidy Tuesday competition this week, `kids`. 
   21. In this exercise, you are going to try to replicate the graph below, created by Georgios Karamanis. I'm sure you can find the exact code on GitHub somewhere, but **DON'T DO THAT!** You will only be graded for putting an effort into this problem. So, give it a try and see how far you can get without doing too much googling. HINT: use `facet_geo()`. The graphic won't load below since it came from a location on my computer. So, you'll have to reference the original html on the moodle page to see it.
   
 ![](kids_data_karamanis.jpeg)
-```{r,fig.height=10, fig.width=4}
+```{r,fig.height=12, fig.width=12}
 ystart<-kids %>% 
   filter(year==1997,variable=="lib") %>% 
   select(state,inf_adj_perchild)
 yed<-kids %>% 
   filter(year==2016,variable=="lib") %>% 
   select(state,inf_adj_perchild)
-yed
-ystart
-ggplot() +
-geom_segment(aes(y=ystart$inf_adj_perchild,x=1997,xend=2016,yend=yed$inf_adj_perchild),arrow=arrow())+
-facet_geo(vars(ystart$state))
+yall<-ystart %>% 
+  left_join(yed,by="state")
+yall
 
+#black arrow and complete
+ggplot(yall) +
+geom_segment(aes(y=ystart$inf_adj_perchild,
+                 x=1997,
+                 xend=2016,
+                 yend=yed$inf_adj_perchild),
+                 arrow=arrow(length = unit(40, "points"),
+                 type = "closed"))+
+facet_geo(vars(state))+
+theme(panel.grid = element_blank(),
+      plot.background = element_rect(fill = "#547CB0", color = "#40608A"))+
+theme(axis.text = element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  labs(title="change on public spending in library from 1997 to 2016",subtitle="i cannot tell cuz the characters are too small")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1),
+    plot.subtitle =element_text(hjust = 0.5,colour = "black", size = 14, vjust = 1) )
 
+#white arrow, incomplete
 kids %>% 
   filter(variable=="lib",year%in%c(1997,2016)) %>% 
   ggplot(aes(y=inf_adj_perchild,x=year)) +
-  geom_line(method="lm",arrow=arrow()) +
-  facet_geo(vars(state))
+  geom_line(method="lm",arrow=arrow(length = unit(0.6, "inches"),
+                                    type="closed"),
+            colour = "#FFFFFF") +
+  facet_geo(vars(state))+
+  theme(panel.grid = element_blank(),
+        plot.background = element_rect(fill = "#547CB0", color = "#40608A"))+
+  theme(axis.text = element_blank())+
+  xlab(NULL)+
+  ylab(NULL)+
+  labs(title="change on public spending in library from 1997 to 2016",
+       subtitle="i cannot tell cuz the characters are too small")+
+  theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
+    size = 14, vjust = 1),
+    plot.subtitle =element_text(hjust = 0.5,colour = "black", size = 14, vjust = 1) )
 
-
-  
+#change the fill name to white
+#why the latter one doesn't show complete thing
+#how to make special arrow different color? by settig auto or manually?
+#theme(axis.ticks = element_blank()) for get rid of the tiny tick
 ```
 
 **DID YOU REMEMBER TO UNCOMMENT THE OPTIONS AT THE TOP?**
