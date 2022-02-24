@@ -258,7 +258,7 @@ Trips %>%
     size = 14, vjust = 1))
 ```
 
-**In my opinion, the previous graph can tell a better story then this one. In the stacked plot,the original shape of casual rider frequency is lost, instead, the whole shape appears. However, as we are going to compare two clients mode instead of the whole pattern, the previous one serves the goal better.**
+**In my opinion, the previous graph can tell a better story than this one. In the stacked plot,the original shape of casual rider frequency is lost, instead, the whole shape representing all riders' bike renting appears, which is the advantage of this plot. However, as we are going to compare two clients mode instead of the whole pattern, the previous one serves the goal better, which is this plot's disadvantage.**
   
   13. In this graph, go back to using the regular density plot (without `position = position_stack()`). Add a new variable to the dataset called `weekend` which will be "weekend" if the day is Saturday or Sunday and  "weekday" otherwise (HINT: use the `ifelse()` function and the `wday()` function from `lubridate`). Then, update the graph from the previous problem by faceting on the new `weekend` variable. 
   
@@ -449,36 +449,43 @@ geom_segment(aes(y=ystart$inf_adj_perchild,
 facet_geo(vars(state))+
 theme(panel.grid = element_blank(),
       plot.background = element_rect(fill = "#547CB0", color = "#40608A"))+
-theme(axis.text = element_blank())+
+theme(axis.text = element_blank(),strip.text = element_text(color = "white"))+
   xlab(NULL)+
   ylab(NULL)+
-  labs(title="change on public spending in library from 1997 to 2016",subtitle="i cannot tell cuz the characters are too small")+
+  labs(title="change on public spending in library from 1997 to 2016",
+       subtitle="i cannot tell cuz the characters are too small",
+        caption="something")+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1),
     plot.subtitle =element_text(hjust = 0.5,colour = "black", size = 14, vjust = 1) )
 
-#white arrow, incomplete
+#white arrow
 kids %>% 
   filter(variable=="lib",year%in%c(1997,2016)) %>% 
   ggplot(aes(y=inf_adj_perchild,x=year)) +
   geom_line(method="lm",arrow=arrow(length = unit(0.6, "inches"),
-                                    type="closed"),
+                                    type="open"),
             colour = "#FFFFFF") +
-  facet_geo(vars(state))+
+  facet_geo(vars(state), move_axes = TRUE)+
   theme(panel.grid = element_blank(),
         plot.background = element_rect(fill = "#547CB0", color = "#40608A"))+
-  theme(axis.text = element_blank())+
+  geom_text(aes(label = round(inf_adj_perchild,1)),
+            vjust = "inward", hjust = "inward",
+            show.legend = FALSE) +
+  theme(axis.text = element_blank(),strip.text = element_text(color = "white"))+
   xlab(NULL)+
   ylab(NULL)+
   labs(title="change on public spending in library from 1997 to 2016",
-       subtitle="i cannot tell cuz the characters are too small")+
+       subtitle="i cannot tell cuz the characters are too small",
+       caption="something")+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1),
     plot.subtitle =element_text(hjust = 0.5,colour = "black", size = 14, vjust = 1) )
 
-#change the fill name to white
+
 #why the latter one doesn't show complete thing
-#how to make special arrow different color? by settig auto or manually?
+#how to make special arrow? 
+#how to figure out hjust and vjust
 #theme(axis.ticks = element_blank()) for get rid of the tiny tick
 ```
 
