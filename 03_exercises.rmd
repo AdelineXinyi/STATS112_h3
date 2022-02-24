@@ -93,10 +93,9 @@ garden_harvest %>%
               names_sort = TRUE,
               values_from = sumpd,
               values_fill = 0.0)
-
 ```
 
-  2. Summarize the `garden_harvest` data to find the total harvest in pound for each vegetable variety and then try adding the plot from the `garden_planting` table. This will not turn out perfectly. What is the problem? How might you fix it?
+  2. Summarize the `garden_harvest` data to find the total harvest in pound for each vegetable variety and then try adding the plot from the `garden_planting` table. This will not turn out perfectly. **What is the problem? How might you fix it?**
 
 ```{r}
 garden_harvest %>% 
@@ -109,8 +108,7 @@ garden_harvest %>%
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `garden_spending` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
-
-**Can first use left_join() to join by available columns(vegetable variety), and for those with price with tax, use summarise to do a sum() to add prices together.**
+**Can first use left_join() to join garden_harvest and garden_spending by available columns(vegetable variety),and if there's need, add some rows of price from the wholefoods resource.Next, mutate a spending variable which is a column that multiply the weight and price with tax of each available variety(may group by variety and vegetable before), at last, use summarise to do a sum() of spending. The number will be the total saving spending.**
 
 
   4. Subset the data to tomatoes. Reorder the tomato varieties from smallest to largest first harvest date. Create a barplot of total harvest in pounds for each variety, in the new order.CHALLENGE: add the date near the end of the bar. (This is probably not a super useful graph because it's difficult to read. This is more an exercise in using some of the functions you just learned.)
@@ -190,6 +188,7 @@ Trips %>%
   scale_y_continuous(labels=scales::comma)+
   labs(title = " bikes rented at different months",x="date")+
   theme(plot.title=element_text(hjust=0.5,vjust=0.3,face="bold",color="black"))
+#density?
 ```
   
   8. A density plot of the events versus time of day.  You can use `mutate()` with `lubridate`'s  `hour()` and `minute()` functions to extract the hour of the day and minute within the hour from `sdate`. Hint: A minute is 1/60 of an hour, so create a variable where 3:30 is 3.5 and 3:45 is 3.75.
@@ -201,7 +200,6 @@ Trips %>%
   geom_density()+
   labs(title = " bikes rented at different time of the day",x="time of the day")+
   theme(plot.title = element_text(hjust=0.5,vjust=0.3,face="bold",color="black"))
-
 ```
   
   9. A bar graph of the events versus day of the week. Put day on the y-axis.
@@ -217,7 +215,7 @@ Trips %>%
     size = 14, vjust = 1))
 ```
   
-  10. Facet your graph from exercise 8. by day of the week. Is there a pattern?
+  10. Facet your graph from exercise 8. by day of the week. **Is there a pattern?**
   
 ```{r}
 Trips %>% 
@@ -247,7 +245,7 @@ Trips %>%
     size = 14, vjust = 1))
 ```
 
-  12. Change the previous graph by adding the argument `position = position_stack()` to `geom_density()`. In your opinion, is this better or worse in terms of telling a story? What are the advantages/disadvantages of each?
+  12. Change the previous graph by adding the argument `position = position_stack()` to `geom_density()`. **In your opinion, is this better or worse in terms of telling a story? What are the advantages/disadvantages of each?**
   
 ```{r}
 Trips %>% 
@@ -266,17 +264,22 @@ Trips %>%
   
 ```{r}
 Trips %>% 
-  mutate(weekend=ifelse(wday(sdate)%in%c(6,7),yes = "weekend",no="weekday")) %>% 
-  mutate(time=hour(sdate),min=minute(sdate)*(1/60),day=weekdays(sdate)) %>% 
+  mutate(weekend=ifelse(wday(sdate)%in%c(6,7),
+                        yes = "weekend",
+                        no="weekday")) %>% 
+  mutate(time=hour(sdate),
+         min=minute(sdate)*(1/60),
+         day=weekdays(sdate)) %>% 
   ggplot(aes(x=time,fill=client))+
   geom_density(alpha = .5,color=NA)+
-  labs(title = " bikes rented at different time of the day",x="time of the day")+
+  labs(title = "bikes rented at different time of the day",x="time of the day")+
   facet_wrap(vars(weekend))+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
+#density?
 ```
   
-  14. Change the graph from the previous problem to facet on `client` and fill with `weekday`. What information does this graph tell you that the previous didn't? Is one graph better than the other?
+  14. Change the graph from the previous problem to facet on `client` and fill with `weekday`. **What information does this graph tell you that the previous didn't? Is one graph better than the other?**
   
 ```{r}
 Trips %>% 
@@ -284,12 +287,12 @@ Trips %>%
   mutate(time=hour(sdate),min=minute(sdate)*(1/60),day=weekdays(sdate)) %>% 
   ggplot(aes(x=time,fill=weekend))+
   geom_density(alpha = .5,color=NA)+
-  labs(title = " bikes rented at different time of the day",x="time of the day",fill="week day kind")+
+  labs(title = "bikes rented at different time of the day",x="time of the day",fill="week day kind")+
   facet_wrap(vars(client))+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
 ```
-**This graph shows the frequency of both client status renting bikes on weekends and weekdays. Registered client have a more stable time pattern as the pattern observed before both on weekends and weekdays, while casual client, although also have a similar pattern on weekends and weekdays, is totally different from the general pattern observed before......**
+**This graph shows the frequency of both client status renting bikes on weekends and weekdays.Casual riders have really similar frequency on weekday and weekend. Registered client have a more stable time pattern as the pattern observed before both on weekends and weekdays, but on weekday especially special time period(8am,19pm), they are going to have far higher frequency than the rest of the day.On weekend, registered riders have less difference in frequency, but there's still a similar pattern with weekdays.Personally, I will prefer this graph than teh previous one as it allows audience to compare the patterns of both clients as they share teh same y axis, but main time as the weekday and weekend patterns are overlapping, it's more direct to do the comparision beyween these two kinds of days than the previous one as in the previous graph, teh casual clients pattern in two facets seem to be so similar that audience may not be able to tell the tiny difference.**
 
 ### Spatial patterns
 
@@ -310,7 +313,7 @@ Trips %>%
     size = 14, vjust = 1))
 ```
   
-16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. What patterns do you notice? (Again, we'll improve this next week when we learn about maps).
+16. Only 14.4% of the trips in our data are carried out by casual users. Create a plot that shows which area(s) have stations with a much higher percentage of departures by casual users. **What patterns do you notice? (Again, we'll improve this next week when we learn about maps).**
   
 ```{r}
 Trips %>% 
@@ -327,7 +330,7 @@ Trips %>%
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
 ```
-**Departures are rather concentrated within latitude range of 38.8-39.0 and the longitude range of -77.1 to -77.0. Among those depatures, very few of the bikes are rented by casual riders.**
+**Departures are rather concentrated within latitude range of 38.8-39.0 and the longitude range of -77.1 to -77.0. Among those departures, very few of the bikes are rented by casual riders.**
  
   
 **DID YOU REMEMBER TO GO BACK AND CHANGE THIS SET OF EXERCISES TO THE LARGER DATASET? IF NOT, DO THAT NOW.**
@@ -352,7 +355,8 @@ breed_traits_total %>%
     size = 14, vjust = 1))
 ```
 
-  18. The final product of this exercise will be a graph with the top-20 dogs in total ratings (from previous problem) on the y-axis, year on the x-axis, and points colored by each breed's ranking for that year (from the `breed_rank_all` dataset). The points within each breed will be connected by a line, and the breeds should be arranged from the highest median rank to lowest median rank ("highest" is actually the smallest numer, eg. 1 = best). After you're finished, think of AT LEAST one thing you could you do to make this graph better. HINTS: 1. Start with the `breed_rank_all` dataset and pivot it so year is a variable. 2. Use the `separate()` function to get year alone, and there's an extra argument in that function that can make it numeric. 3. For both datasets used, you'll need to `str_squish()` Breed before joining. 
+  18. The final product of this exercise will be a graph with the top-20 dogs in total ratings (from previous problem) on the y-axis, year on the x-axis, and points colored by each breed's ranking for that year (from the `breed_rank_all` dataset). The points within each breed will be connected by a line, and the breeds should be arranged from the highest median rank to lowest median rank ("highest" is actually the smallest numer, eg. 1 = best). After you're finished, **think of AT LEAST one thing you could you do to make this graph better.**
+HINTS: 1. Start with the `breed_rank_all` dataset and pivot it so year is a variable. 2. Use the `separate()` function to get year alone, and there's an extra argument in that function that can make it numeric. 3. For both datasets used, you'll need to `str_squish()` Breed before joining. 
   
 ```{r}
 rank<-breed_rank_all %>% 
@@ -374,13 +378,13 @@ breed_traits_total %>%
              x=year_int))+
   geom_line()+
   geom_point(aes(color=Rank))+
-  labs(title = "rank of the top-20 dog breeds in total ratings",y="Breed")+
+  labs(title = "rank of the top-20 dog breeds in total ratings",y="Breed",x="year")+
   theme(plot.title = element_text(hjust = 0.5,colour = "black", face = "bold", 
     size = 14, vjust = 1))
 
 #default is median
 ```
-**I thinks it will be better if facet is used.**
+**I thinks it will be better if facet is used, or pick another graph type such as multiple bar plot, as the color range showing teh rank changing is not easy to distinguish.**
 
   19. Create your own! Requirements: use a `join` or `pivot` function (or both, if you'd like), a `str_XXX()` function, and a `fct_XXX()` function to create a graph using any of the dog datasets. One suggestion is to try to improve the graph you created for the Tidy Tuesday assignment. If you want an extra challenge, find a way to use the dog images in the `breed_rank_all` file - check out the `ggimage` library and [this resource](https://wilkelab.org/ggtext/) for putting images as labels.
   
@@ -415,7 +419,7 @@ breed_traits_own %>%
 
   20. Below, provide a link to your GitHub page with this set of Weekly Exercises. Specifically, if the name of the file is 03_exercises.Rmd, provide a link to the 03_exercises.md file, which is the one that will be most readable on GitHub.
 
-[here](https://github.com/AdelineXinyi/STATS112_h3/blob/main/03_exercises.rmd)
+[myGITfile](https://github.com/AdelineXinyi/STATS112_h3/blob/main/03_exercises.rmd)
 
 ## Challenge problem! 
 
@@ -433,7 +437,7 @@ yed<-kids %>%
   select(state,inf_adj_perchild)
 yall<-ystart %>% 
   left_join(yed,by="state")
-yall
+
 
 #black arrow and complete
 ggplot(yall) +
