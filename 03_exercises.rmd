@@ -108,7 +108,7 @@ garden_harvest %>%
 
   3. I would like to understand how much money I "saved" by gardening, for each vegetable type. Describe how I could use the `garden_harvest` and `garden_spending` datasets, along with data from somewhere like [this](https://products.wholefoodsmarket.com/search?sort=relevance&store=10542) to answer this question. You can answer this in words, referencing various join functions. You don't need R code but could provide some if it's helpful.
 
-**Can first use left_join() to join garden_harvest and garden_spending by available columns(vegetable variety),and if there's need, add some rows of price from the wholefoods resource.Next, mutate a spending variable which is a column that multiply the weight and price with tax of each available variety(may group by variety and vegetable before), at last, use summarise to do a sum() of spending. The number will be the total saving spending.**
+**Can first use left_join() to join garden_harvest and garden_spending by available columns(vegetable variety),and if there's need, add some rows of price from the wholefoods resource.Next, mutate a spending variable which is a column that multiply the weight(depends on the unit,pounds/grams) and price with tax of each available variety(may group by variety and vegetable before), at last, use summarise to do a sum() of spending. The number will be the total saving spending.**
 
 
   4. Subset the data to tomatoes. Reorder the tomato varieties from smallest to largest first harvest date. Create a barplot of total harvest in pounds for each variety, in the new order.CHALLENGE: add the date near the end of the bar. (This is probably not a super useful graph because it's difficult to read. This is more an exercise in using some of the functions you just learned.)
@@ -258,7 +258,7 @@ Trips %>%
     size = 14, vjust = 1))
 ```
 
-**In my opinion, this graph can tell a better story then the previous one.In the previous one, two client kinds are basically tell two different stories with not too much similarities.This one takes two client kinds and makes their own trend respectively, and allows the audience to view the common points more.I don't really understand the previous one....**
+**In my opinion, the previous graph can tell a better story then this one. In the stacked plot,the original shape of casual rider frequency is lost, instead, the whole shape appears. However, as we are going to compare two clients mode instead of the whole pattern, the previous one serves the goal better.**
   
   13. In this graph, go back to using the regular density plot (without `position = position_stack()`). Add a new variable to the dataset called `weekend` which will be "weekend" if the day is Saturday or Sunday and  "weekday" otherwise (HINT: use the `ifelse()` function and the `wday()` function from `lubridate`). Then, update the graph from the previous problem by faceting on the new `weekend` variable. 
   
@@ -303,8 +303,9 @@ Trips %>%
   mutate(name=sstation) %>% 
   left_join(Stations,
   by ="name") %>% 
-  group_by(name) %>% 
-  mutate(n=n()) %>% 
+  group_by(name,lat,long) %>% 
+  summarise(n=n()) %>% 
+  arrange(name) %>% 
   ggplot(aes(x=long,y=lat))+
   geom_point(aes(color = n)) +
   scale_color_viridis_c()+
@@ -317,12 +318,10 @@ Trips %>%
   
 ```{r}
 Trips %>% 
-  left_join(Stations, by = c("sstation" = "name"))%>% 
   group_by(sstation) %>% 
-  mutate(nTotal=n()) %>% 
-  group_by(sstation,client) %>% 
-  mutate(nCasual= sum(client == "Casual")) %>% 
+ summarise(nCasual= sum(client == "Casual"),nTotal=n()) %>% 
   mutate(portionCasual=nCasual/nTotal) %>% 
+  left_join(Stations, by = c("sstation" = "name"))%>% 
   ggplot(aes(x=long,y=lat))+
   geom_point(aes(color = portionCasual)) +
   scale_color_viridis_c()+
